@@ -13,4 +13,5 @@ func RoutePerson(mux *http.ServeMux, storage repository.Person) {
 
 	mux.HandleFunc("/v1/user/create", p.Create)
 	mux.HandleFunc("/v1/user/migrate", p.Migrate)
+	mux.HandleFunc("/v1/user/get-all", p.GetAll)
 }

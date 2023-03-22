@@ -14,7 +14,6 @@ func (p *person) Migrate(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("no anda %v", err)
 	}
-
 	fmt.Printf("todo se migro")
 }
 
@@ -41,4 +40,24 @@ func (p *person) Create(w http.ResponseWriter, r *http.Request) {
 
 	response := newResponse("ok", "Todo salio bien", &data)
 	responseJSON(w, http.StatusOK, response)
+}
+
+func (p *person) GetAll(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		response := newResponse("error", "metodo no permitido", nil)
+		responseJSON(w, http.StatusBadRequest, response)
+		return
+	}
+
+	data, err := p.storage.GetAll()
+	if err != nil {
+		response := newResponse("error", "Error al obtener los registros de las personas", nil)
+		responseJSON(w, http.StatusBadRequest, response)
+		return
+
+	}
+
+	response := newResponse("success", "Ok", data)
+	responseJSON(w, http.StatusOK, response)
+
 }

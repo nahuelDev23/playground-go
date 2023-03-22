@@ -14,7 +14,8 @@ var (
     age VARCHAR(2) NOT NULL,
 		CONSTRAINT products_id_pk PRIMARY KEY (id) 
 	)`
-	psqlCreateProduct = `INSERT INTO users(name, age) VALUES($1, $2) RETURNING id`
+	psqlCreatePerson  = `INSERT INTO users(name, age) VALUES($1, $2) RETURNING id`
+	psqlGetAllPersons = `SELECT id, name,age FROM users`
 )
 
 //messageType implements interface Storage
@@ -25,6 +26,7 @@ type psqlProduct struct {
 func NewPsqlPerson(db *sql.DB) *psqlProduct {
 	return &psqlProduct{db}
 }
+
 // Migrate implement the interface product.Storage
 func (p *psqlProduct) Migrate() error {
 	stmt, err := p.db.Prepare(psqlMigrateUser)
@@ -43,7 +45,7 @@ func (p *psqlProduct) Migrate() error {
 }
 
 func (p *psqlProduct) Create(person *models.Person) error {
-	stmt, err := p.db.Prepare(psqlCreateProduct)
+	stmt, err := p.db.Prepare(psqlCreatePerson)
 	if err != nil {
 		return err
 	}
@@ -63,4 +65,54 @@ func (p *psqlProduct) Create(person *models.Person) error {
 	return nil
 }
 
+//return slice of person
+func (p *psqlProduct) GetAll() (models.Persons, error) {
+	stmt, err := p.db.Prepare(psqlGetAllPersons)
 
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := stmt.Query()
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer stmt.Close()
+
+	//make a empty slice of persons
+	modelPersons := make(models.Persons, 0)
+
+	for rows.Next() {
+		person, err := scanRowPerson(rows)
+		if err != nil {
+			return nil, err
+		}
+		modelPersons = append(modelPersons, person)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return modelPersons, nil
+
+}
+
+type scanner interface {
+	Scan(dest ...interface{}) error
+}
+
+func scanRowPerson(s scanner) (*models.Person, error) {
+	mp := &models.Person{}
+	err := s.Scan(
+		&mp.ID,
+		&mp.Name,
+		&mp.Age,
+	)
+	if err != nil {
+		return &models.Person{}, err
+	}
+
+	return mp, nil
+}
