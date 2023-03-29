@@ -3,6 +3,7 @@ package services
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 
@@ -24,15 +25,35 @@ func (p *person) Create(w http.ResponseWriter, r *http.Request) {
 		responseJSON(w, http.StatusBadRequest, response)
 		return
 	}
+
+	//esto deberia estar en un middleware
+	// age := r.FormValue("age")
+
 	data := models.Person{}
-	err := json.NewDecoder(r.Body).Decode(&data)
+  //lo  convierto a un cadena de bytes
+	body, err := ioutil.ReadAll(r.Body)
+  
+
 	if err != nil {
 		log.Printf("error al decodificar el bory %v", err)
 	}
+  // la cadena de bytes body se la paso a la estructura de go 
+  // ahora puedo acceder a data.name como si fuera un objeto
+	err = json.Unmarshal(body, &data)
+	if err != nil {
+		log.Printf("error al decodificar el bory %v", err)
+	}
+
+	// if !data.Details.Valid {
+	// 	response := newResponse("error", "error la crear al usuario, details no puede estar vacia", nil)
+	// 	responseJSON(w, http.StatusInternalServerError, response)
+	// 	return
+	// }
+
 	err = p.storage.Create(&data)
 
 	if err != nil {
-		fmt.Printf("%v", err)
+		log.Printf("%v", err)
 		response := newResponse("error", "error la crear al usuario", nil)
 		responseJSON(w, http.StatusInternalServerError, response)
 		return
