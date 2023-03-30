@@ -12,10 +12,11 @@ var (
 		id SERIAL NOT NULL,
 		name VARCHAR(25) NOT NULL,
     age VARCHAR(2) NOT NULL,
+    password VARCHAR(100) NOT NULL,
     details VARCHAR(100),
 		CONSTRAINT products_id_pk PRIMARY KEY (id) 
 	)`
-	psqlCreatePerson  = `INSERT INTO users(name, age,details) VALUES($1, $2, $3) RETURNING id`
+	psqlCreatePerson  = `INSERT INTO users(name, age,password,details) VALUES($1, $2, $3,$4) RETURNING id`
 	psqlGetAllPersons = `SELECT id, name,age FROM users`
 )
 
@@ -55,7 +56,8 @@ func (p *psqlProduct) Create(person *models.Person) error {
 	err = stmt.QueryRow(
 		person.Name,
 		person.Age,
-    person.Details,
+		person.Password,
+		person.Details,
 	).Scan(&person.ID)
 
 	if err != nil {
@@ -111,7 +113,8 @@ func scanRowPerson(s scanner) (*models.Person, error) {
 		&mp.ID,
 		&mp.Name,
 		&mp.Age,
-    &mp.Details,
+		&mp.Password,
+		&mp.Details,
 	)
 	if err != nil {
 		return &models.Person{}, err

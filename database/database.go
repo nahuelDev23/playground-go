@@ -54,3 +54,12 @@ func DAOPerson(driver Driver) (repository.Person, error) {
 		return nil, fmt.Errorf("Driver not implemented")
 	}
 }
+
+func DAOLogin(driver Driver) (repository.Login, error) {
+	switch driver {
+	case Postgres:
+		return repository.NewPsqlLogin(db), nil
+	default:
+		return nil, fmt.Errorf("Driver not implemented")
+	}
+}
